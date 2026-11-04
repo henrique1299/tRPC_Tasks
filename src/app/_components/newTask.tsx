@@ -9,12 +9,14 @@ export function CreateTaskForm() {
   const [id, setId] = useState(0);
 
   const utils = api.useUtils();
+
   const createTask = api.tasks.create.useMutation({
     onSuccess: async () => {
       setTitulo("");
       setDescricao("");
       setId(0);
       await utils.tasks.invalidate(); 
+      alert(`Tarefa criada com sucesso.`);
     },
   });
 

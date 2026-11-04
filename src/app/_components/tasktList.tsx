@@ -38,6 +38,7 @@ export function TaskList() {
   const deleteTask = api.tasks.delete.useMutation({
     onSuccess: async () => {
       await utils.tasks.getInfiniteTasks.invalidate();
+      alert(`Tarefa deletada com sucesso.`);
     },
     onError: (error) => {
       alert(`Erro ao deletar tarefa: ${error.message}`);
@@ -48,9 +49,10 @@ export function TaskList() {
     onSuccess: async () => {
       setEditingId(null);
       await utils.tasks.getInfiniteTasks.invalidate();
+      alert(`Tarefa atualizada com sucesso.`);
     },
     onError: (error) => {
-      alert(`Erro ao deletar tarefa: ${error.message}`);
+      alert(`Erro ao atualizar tarefa: ${error.message}`);
     }
   });
 
@@ -86,6 +88,8 @@ export function TaskList() {
 
   const _tasks = data.pages.flatMap((page) => page.items);
 
+
+  // Exibe a lista de tarefas. Exibe o texto sólido ou o form de edição dependendo do estado.
   return (
     <div className="w-full flex flex-col">
       <ul className="max-h-[500px] overflow-y-auto flex flex-col gap-4 pr-2 custom-scrollbar">

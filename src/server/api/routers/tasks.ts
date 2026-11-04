@@ -20,8 +20,8 @@ class Task implements ITask {
   ) {}
 }
 
+// Cria uma lista de tarefas ao iniciar para simulação
 var id = 20;
-
 export let tasks: ITask[]  = [
   { id: 1, titulo: "Estudar Next.js App Router", descricao: "Aprender sobre server e client components", dataCriacao: new Date("2026-11-01").getDate() },
   { id: 2, titulo: "Configurar tRPC", descricao: "Integrar tRPC com React Query e Next.js", dataCriacao: new Date("2026-11-01").getDate() },
