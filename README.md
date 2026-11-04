@@ -1,29 +1,54 @@
-# Create T3 App
+# TASKS App
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+Um gerenciador de tarefas moderno desenvolvido com a **T3 Stack** (Next.js App Router, tRPC, Tailwind CSS e TypeScript), focando em alta performance, type-safety de ponta a ponta e uma experiência de usuário fluida com carregamento sob demanda (**Infinite Scroll**).
 
-## What's next? How do I make an app with this?
+---
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+## Tecnologias Utilizadas
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+*   **[Next.js](https://nextjs.org/) (App Router)**: Framework React para renderização híbrida (Server e Client Components).
+*   **[tRPC](https://trpc.io/)**: Comunicação type-safe entre cliente e servidor sem necessidade de schemas em JSON/OpenAPI separados.
+*   **[Tailwind CSS](https://tailwindcss.com/)**: Estilização utilitária e responsiva.
+*   **[Zod](https://zod.dev/)**: Validação de esquemas e dados em tempo de execução.
+*   **[React Intersection Observer](https://github.com/thebuilder/react-intersection-observer)**: Monitoramento de rolagem para paginação infinita.
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+---
 
-## Learn More
+## Arquitetura e Principais Pontos de Funcionamento
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+O projeto adota uma arquitetura modular inspirada na **T3 Stack**, dividindo-se entre a camada de apresentação (`app/`), componentes de interface (`_components/`) e a camada de rotas/servidor tRPC (`server/api/`).
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+### 1. **Server-Side Rendering (SSR) e Hydration (`app/page.tsx`)**
+A página inicial utiliza recursos do Next.js App Router combinados com tRPC para realizar o **Prefetch** dos dados no servidor antes de enviá-los ao cliente:
+*   Faz a chamada de pré-carregamento (`prefetchInfinite`) para as primeiras tarefas.
+*   Envolve o layout com o componente `<HydrateClient>` para hidratar o cache do React Query no cliente instantaneamente.
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+### 2. **Scroll Infinito Dinâmico (`TaskList.tsx`)**
+A listagem de tarefas implementa paginação baseada em cursor através da query `getInfiniteTasks.useInfiniteQuery`:
+*   Utiliza a biblioteca `react-intersection-observer` para detectar quando o usuário chega ao final da lista (`inView`).
+*   Dispara automaticamente a função `fetchNextPage()` para carregar novos lotes de tarefas de forma assídua e sem recarregar a página.
 
-## How do I deploy this?
+### 3. **Mutations e Invalidação de Cache (`tRPC Mutations`)**
+As operações de escrita (`create`, `update`, `delete`) utilizam o sistema de mutações do tRPC integrado ao React Query:
+*   Após o sucesso de qualquer alteração (`onSuccess`), o cache do tRPC é invalidado (`utils.tasks.getInfiniteTasks.invalidate()`), forçando a atualização automática da listagem em tempo real.
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+### 4. **Camada de Backend e Rotas tRPC (`taskRouter`)**
+O servidor gerencia os dados através de rotas tipadas com procedimentos (`publicProcedure`):
+*   **Validação com Zod:** Os dados enviados do cliente para o servidor passam por validações rigorosas de esquema (garantindo tipos corretos para ids, títulos, descrições e timestamps).
+*   **Paginação por Cursor:** A rota `getInfiniteTasks` fatia o array de dados em memória utilizando limites e deslocamentos/cursores, retornando os itens e o próximo ponteiro.
+
+---
+
+## Estrutura do Projeto
+
+```text
+├── src/
+│   ├── app/
+│   │   ├── _components/       # Componentes de UI (TaskList, CreateTaskForm)
+│   │   ├── page.tsx           # Página principal (SSR + Hydration)
+│   │   └── layout.tsx         # Layout global e provedores
+│   ├── server/
+│   │   └── api/
+│   │       ├── root.java/trpc # Configuração das rotas da API
+│   │       └── routers/       # Implementação do taskRouter (lógica de backend)
+│   └── trpc/                  # Configuração do cliente/servidor tRPC
